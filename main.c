@@ -14,7 +14,7 @@ struct matrix ** grid;
 int *status;
 void checking_printMatrix();
 void printMatrix();
-void initializeGrid();
+void init_Grid();
 void playerUpdate(char,int,int,int);
 void reactionUpdate(char ,int , int);
 void getPlayer(int );
@@ -25,46 +25,59 @@ void sleep();
 //Driver Function
 int main()
 {
-    initializeGrid();
+    init_Grid();
     for(int i=0; i<noOfPlayers; i++)
-	getPlayer(i);
-    
+    getPlayer(i);
+
     while(1){
         for(int i=0; i<noOfPlayers; i++){
-	    if(status[i]){
-	        getPlayer(i);
+            if(status[i]){
+                getPlayer(i);
                 if(checkWin())
                     return 0;
-	    }
+            }
         }
-    } 
+    }
     return 0;
 }
 
 //function to get dimension of x and y from the player , update and print the Matrix
 void getPlayer(int num){
-    printMatrix();
     int tempX,tempY;
-        printf("\nPlayer %d (%c):  Enter the box Value : ",num+1,playersColour[num]);
-	fflush(stdin);
-        scanf("%d,%d",&tempX,&tempY);
-        playerUpdate(playersColour[num],tempX,tempY,num);
-    
-}
+    printf("\nPlayer %d (%c):  Enter the box Value : ",num+1,playersColour[num]);
+    fflush(stdin);
 
+    // loop run untill it gets 2 values
+    while(scanf("%d,%d",&tempX,&tempY) != 2){
+        printf("Enter correct value : ");
+        getchar();
+    }
+
+    playerUpdate(playersColour[num],tempX,tempY,num);
+}
 
 //Function to Print the values of matrix
 void printMatrix(){
     system("clear");
-    printf("\n---------------------------- CHAIN REATION GAME ----------------------------\n\n");
-    printf("X  |");
-    for(int i=0; i<COLUMN; printf(" %2d ",i++));printf("\n");
-    for(int i=0; i<=COLUMN; printf("----"),i++);printf("\n");
+    printf("\n\t\t\t\tCHAIN REATION GAME \n\n");
+    printf("\t\t\t    |");
+    for(int i=0; i<COLUMN; printf("%3d |",i++));
+    printf("\n");
     for(int i=0; i<ROW; i++,printf("\n")){
-        printf("%2d |",i);
-        for(int j=0; j<COLUMN; j++)
-            printf(" %c %d ",grid[i][j].ballColour,grid[i][j].currentCapacity);
+        printf("\t\t\t");
+        for(int i=0; i<=COLUMN; printf("-----"),i++);
+
+        printf("\n");
+        printf("\t\t\t%3d |",i);
+        for(int j=0; j<COLUMN; j++){
+            if(grid[i][j].currentCapacity ==0)
+                printf("    |");
+            else
+                printf(" %c%d |",grid[i][j].ballColour,grid[i][j].currentCapacity);
+        }
     }
+    printf("\t\t\t");
+    for(int i=0; i<=COLUMN; printf("-----"),i++);
     printf("\n");
 }
 
@@ -76,101 +89,97 @@ void playerUpdate(char colour, int i , int j, int playerNumber ){
             grid[i][j].ballColour=colour;
         }
         else{
+            grid[i][j].currentCapacity++;
             chainReaction(colour,i,j);
         }
     }
     else{
-        printf("YOU CANNOT CHOOSE THIS BOX.... TRY AGAIN\n");
-            getPlayer(playerNumber);
+        getchar();
+        printf("\nYOU CANNOT CHOOSE THIS BOX.... TRY AGAIN\n");
+        getPlayer(playerNumber);
     }
+    printMatrix();
 }
-
 
 //function to perform chain chainReaction
 void chainReaction(char colour,int i,int j){
+    printMatrix();
+    sleep();
     grid[i][j].currentCapacity=0;
     grid[i][j].ballColour = ' ';
     if(i+1 < ROW){
         reactionUpdate(colour,i+1,j);
-	printMatrix();
-	sleep();
     }
     if(i-1 >= 0){
         reactionUpdate(colour,i-1,j);
-	printMatrix();
-	sleep();
     }
     if(j+1 < COLUMN){
         reactionUpdate(colour,i,j+1);
-	printMatrix();
-	sleep();
     }
     if(j-1 >= 0){
         reactionUpdate(colour,i,j-1);
-	printMatrix();
-	sleep();
     }
 }
 
-//fuction to update matrix 
+//fuction to update matrix
 void reactionUpdate(char colour,int i, int j){
     if(grid[i][j].currentCapacity+1 <= grid[i][j].MaxCapacity){
             grid[i][j].currentCapacity++;
             grid[i][j].ballColour=colour;
-        }
-        else{
-            chainReaction(colour,i,j);
-        }
+    }
+    else{
+        grid[i][j].currentCapacity++;
+        chainReaction(colour,i,j);
+    }
 }
 
 //function to check weather there is a win
 int checkWin(){
-	for(int k=0; k<noOfPlayers; k++){
-	    if(status[k]){
-		    status[k]=0;
-		    for(int i=0; i<ROW; i++){
-			for(int j=0; j<COLUMN; j++){
-			    if(grid[i][j].ballColour == playersColour[k]){
-				status[k]= 1;
-				break;
-			    }
-			}
-			if(status[k])
-			    break;
-		    }
-		    if(status[k] != 1)
-			printf("\n-------- Opps !!! Player %d (%c) ELEMINATED -----------\n",k+1,playersColour[k]);
-	    }
-	}
+    for(int k=0; k<noOfPlayers; k++){
+        if(status[k]){
+            status[k]=0;
+            for(int i=0; i<ROW; i++){
+                for(int j=0; j<COLUMN; j++){
+                    if(grid[i][j].ballColour == playersColour[k]){
+                        status[k]= 1;
+                        break;
+                    }
+                }
+            if(status[k])
+                break;
+            }
+        if(status[k] != 1)
+            printf("\n-------- Opps !!! Player %d (%c) ELEMINATED -----------\n",k+1,playersColour[k]);
+        }
+    }
 
-	//check weather any one won
-	int sum=0;
-	for(int i=0; i<noOfPlayers; i++){
-	    sum += status[i];
-	}
+    //check weather any one won
+    int sum=0;
+    for(int i=0; i<noOfPlayers; i++)
+        sum += status[i];
 
-	//if any one won then find who
-	if(sum==1){
-	    for(int i=0; i<noOfPlayers; i++){
-		if(status[i] == 1){
-		    printf("\n\n---------- Congragulations!!!!! PLAYER %d WON the match -----------",i+1);
-		    return 1;
-		}
-	    }
-	}
+    //if any one won then find who
+    if(sum==1){
+        for(int i=0; i<noOfPlayers; i++){
+            if(status[i] == 1){
+                printf("\n\n---------- Congragulations!!!!! PLAYER %d WON the match -----------",i+1);
+                return 1;
+            }
+        }
+    }
     return 0;
 }
 
 //Function to sleep for some time
 void sleep(){
-   int c, d;\
-   for (c = 1; c <= 32767; c++)
-       for (d = 1; d <= 100; d++)
-       {;;;}
+    int c, d;
+    for (c = 1; c <= 32767; c++)
+        for (d = 1; d <= 100; d++)
+           {;;;}
 }
 
 //Function to initialize the values of the matrix
-void initializeGrid(){
+void init_Grid(){
     system("clear");
     printf("\n---------------------------- CHAIN REATION GAME ----------------------------\n\n");
     //getting the values from the user
@@ -178,27 +187,34 @@ void initializeGrid(){
     scanf("%d",&ROW);
     printf("Enter No of Columns : ");
     scanf("%d",&COLUMN);
-    printf("Enter No of Players : ");
-    scanf("%d",&noOfPlayers);
+
+    // loop run untill the no of players is greater than 2;
+    do{
+        printf("Enter No of Players : ");
+        scanf("%d",&noOfPlayers);
+    }while(noOfPlayers <=1 ? printf("MINIMUM PLAYERS COUNT IS 2.\n") : 0);
+
+
     playersColour = calloc(sizeof(char),noOfPlayers);    //dynamically creating the array to store colors
-	
+
     //getting the colors form the user
     for(int i=0; i<noOfPlayers; i++){
-	printf("Choose a distint letter for player %d : ",i+1);
-	fflush(stdin);
-	scanf("%c",&playersColour[i]);
+        printf("Choose a distint letter for player %d : ",i+1);
+        fflush(stdin);
+        getchar();
+        scanf("%c",&playersColour[i]);
     }
 
     //Dynamically creating the matrix with required size
     grid = (struct matrix **) calloc(sizeof(struct matrix *) , ROW);
     for(int i=0; i<ROW; i++){
-	 grid[i] = (struct matrix*) calloc (sizeof(struct matrix) , COLUMN);
+        grid[i] = (struct matrix*) calloc (sizeof(struct matrix) , COLUMN);
     }
 
     //Dynamically creating the status array to check wheather the player is eligible or not
     status = malloc(sizeof(int)*noOfPlayers);
     for(int i=0; i<noOfPlayers; i++)
-	status[i]=1;
+        status[i]=1;
 
     //populating the matrix with default values
     for(int i=0; i<ROW; i++){
@@ -218,6 +234,7 @@ void initializeGrid(){
     grid[ROW-1][COLUMN-1].MaxCapacity=1;
     grid[0][COLUMN-1].MaxCapacity=1;
     grid[ROW-1][0].MaxCapacity=1;
-    
+    printMatrix();
 }
+
 
